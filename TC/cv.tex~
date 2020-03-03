@@ -1,0 +1,4 @@
+\documentclass[a4paper]{article}
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}        % encodage de police\usepackage[utf8]{inputenc}     % si utf8%\usepackage[latin1]{inputenc}  % si iso-latin1\pagestyle{empty}               % ni head ni foot\usepackage[margin=2cm]{geometry} % marges\title{Curriculum Vit\ae}\author{Michel Meynard}\date{\today}\begin{document}\maketitle\section{État Civil}\section{Formation}\subsection{Diplômes}\subsection{Stages}\section{Expériences professionnelles}\section*{Compétences informatiques}\section*{Compétences linguistiques}\end{document}
+

@@ -1,0 +1,225 @@
+#lang racket
+
+; 1 Représentation des propositions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define F '(<-> (^ a c) (v (! b) (-> c (^ B T)))))
+
+; Q1
+(define F1 '(<-> (^ a b) (v (! a) b)))
+(define F2 '(v (! (^ a (! b))) (! (-> a b))))
+(define F3 '(^ (! (-> a (v a b))) (! (! (^ a (v b (! c)))))))
+(define F4 '(^ (v (! a) b d) (v (! d) c) (v c a) (v (! c) b) (v (! b) d)))
+
+(define F5 '(-> a b))
+(define F6 '(v (! a) b))
+
+; Q2
+(define (neg? f) (eq? f '!))
+(define (and? f) (eq? f '^))
+(define (or? f) (eq? f 'v))
+(define (imp? f) (eq? f '->))
+(define (equ? f) (eq? f '<->))
+(define (top? f) (eq? f 'T))
+(define (bot? f) (eq? f 'B))
+(define (symbLog? f) (or (top? f) (bot? f) (and? f) (or? f) (neg? f) (imp? f) (equ? f)))
+(define (symbProp? f) (and (symbol? f) (not (symbLog? f))))
+(define (atomicFbf? f) (or (symbProp? f) (top? f) (bot? f)))
+(define (conBin? f) (or (and? f) (or? f) (imp? f) (equ? f)))
+
+; Q2
+(define (fbf? f)
+  (cond ((atomicFbf? f) #t)
+        ((list? f) (cond ((and (= (length f) 2) (neg? (car f))) (fbf? (cadr f)) #t)
+                         ((and (= (length f) 3) (conBin? (car f))) (and (fbf? (cadr f)) (fbf? (caddr f))))
+                         (else #f)))
+        (else #f)))
+
+; 2 Syntaxe des propositions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (conRac f) (car f))
+(define (fils f) (cadr f))
+(define (filsG f) (cadr f))
+(define (filsD f) (caddr f))
+(define (negFbf? f) (and (not (atomicFbf? f)) (neg? (conRac f))))
+
+; Q3
+(define (nbc f)
+  (cond ((atomicFbf? f) 0)
+        ((negFbf? f) (+ 1 (nbc (fils f))))
+        (else (+ 1 (nbc (filsG f)) (nbc (filsD f))))))
+
+
+; Q4 
+(define (prof f)
+  (cond [(atomicFbf? f) 0]
+        [(negFbf? f) (+ 1 (prof (fils f)))]
+        [else (+ 1 (max (prof (filsG f)) (prof (filsD f))))]))
+
+; A FINIR ;
+;; Q5 ;; Retourne l'ensemble des symboles propositionnelles de la formule f
+;(define (enSP f)
+;  (cond [(atomicFbf? f) (list f)]
+;        [(negFbf? f) (enSP (fils f))]
+;        [else (set-union (enSP (filsG f)) (enSP (filsD f)))]))
+
+(define (ensSP f)
+  (cond [(or (top? f) (bot? f)) '()]
+        [(atomicFbf? f) (list f)]
+        [(negFbf? f) (ensSP (fils f))]
+        [else (set-union (ensSP (filsG f)) (ensSP (filsD f)))]))
+
+;(define (enSP2 f)
+;  (cond [(or (top? f) (bot? f))]
+;        [(and (symbProp? f) (not (top? f)) (not (bot? f))) (list f)]
+;        [(negFbf? f) (enSP (fils f))]
+;        [else (set-union (enSP (filsG f)) (enSP (filsD f)))]))
+
+; Q6 (optionnel)
+;(define (affiche f)
+
+; Q7
+(define I1 '((a . 1) (b . 0) (c . 1)))
+(define I2 '((a . 0) (b . 0) (c . 0)))
+(define I3 '((a . 1) (b . 1) (c . 1)))
+
+; Q8 ; Interprétation du symbole propositionnel
+(define (intSymb s I) ; on suppose que a 1 valeur dans I
+  (cond [(eq? (caar I) s) (cdar I)]
+        [else (intSymb s (cdr I))]))
+
+; Q9
+(define (intNeg b) ; Interprétation de NON d'une valeur, retournant 1 si elle est Absurde, 0 si Vra
+  (if (eq? b 0) 1 0))
+
+(define (intAnd b1 b2) ; Interprétation du ET de 2 valeurs
+  (if (and (= b1 1) (= b2 1)) 1 0))
+
+(define (intOr b1 b2) ; Interprétation du OR de 2 valeurs
+  (if (or (= b1 1) (= b2 1)) 1 0))
+
+(define (intImp a b) ; Interprétation du IMPLIQUE de 2 valeurs
+  (if (and (= a 1) (= b 0)) 0 1))
+
+(define (intEqu b1 b2) ; Interprétation du EQUIVALENT de 2 valeurs
+  (if (= b1 b2) 1 0))
+
+(define intTop 1) ; Interprétation de TOP
+
+(define intBot 0) ; Interprétation de BOTTOM
+
+; Q10 ; Donne la valeur de vérité d'une formule
+(define (valV f I) 
+  (cond [(symbProp? f) (intSymb f I)]
+        [(top? f) intTop]
+        [(bot? f) intBot]
+        [(neg? f) (intNeg (valV (fils f) I))]
+        [(and? (conRac f)) (intAnd (valV (filsG f) I) (valV (filsD f) I))]
+        [(or? (conRac f)) (intOr (valV (filsG f) I) (valV (filsD f) I))]
+        [(imp? (conRac f)) (intImp (valV (filsG f) I) (valV (filsD f) I))]
+        [(equ? (conRac f)) (intEqu (valV (filsG f) I) (valV (filsD f) I))]
+        [else 0]))
+
+; Q11 ; Vérifie si la valeur de la fbf selon l'interprétation est ou pas un modèle
+(define (modele? F I)
+  (= (valV F I) 1))
+
+; Q12 ; Ensemble des interprétation de p et q
+(define EIpq '[((p . 0) (q . 1))
+               ((p . 0) (q . 1))
+               ((p . 1) (q . 0))
+               ((p . 1) (q . 1))])
+
+; Q13 ; Retourne l'ensemble de toutes les interprétation possible ; set-union set-add map lambda (5 lignes) null?
+(define (ensInt ESP)
+  (cond [(set-empty? ESP) '(())]
+        [else (let ((EnsIntCdr (ensInt (cdr ESP))))
+                (set-union
+                 (map [lambda (I) (cons (cons (car ESP) 0) I)] EnsIntCdr)
+                 (map [lambda (I) (cons (cons (car ESP) 1) I)] EnsIntCdr)
+                 ))]))
+
+; Q14 ; Vérifie si une fbf donnée est satisfiable ; ormap
+(define (satisfiable? F)
+  (ormap (lambda (I) (modele? F I))
+         (ensInt (ensSP F)) ))
+
+; Q15 ; Vérifie si une fbf donnée est valide
+(define (valide? F)
+  (andmap (lambda (I) (modele? F I))
+          (ensInt (ensSP F)) ))
+
+; Q16 ; Vérifie si une fbf donnée est insatisfiable
+(define (insatisfiable? F)
+  (not (satisfiable? F)) )
+
+; Q17 ; Teste si deux fbf données sont sémentiquement équivalentes
+;(define (equivalent1? f1 f2)
+;  (and (equal? (valV f1 I1) (valV f2 I2))) )
+
+(define (equivalent1? f1 f2) ; NE MARCHE PAS
+  (andmap (lambda (I)
+            (equal? (modele? f1 I) (modele? f2 I)) )
+          (ensInt (set-union (ensSP f1) (ensSP f2))) ))
+
+(define (equivalent2? f1 f2)
+  (valide? (list '<-> f1 f2)) )
+
+; Q18 ;
+(define (consequence2?v1 F G)
+  (andmap (lambda (I)
+            (if (and (= (valV F I) 1) (= (valV G I) 0)) #f #t) )
+          (ensInt (set-union (ensSP F) (ensSP F) (ensSP G))) ))
+
+(define (consequence2?v2 F G) ; insatisfiable?
+  (insatisfiable? (list '^ F (list '^ G))) )
+
+(define (consequence2?v3 F G) ; valide?
+  (valide? (list '-> F G)) )
+
+; Q19 ; Retourne l'ensemble des symboles propositionnels d'un ensemble de propositions donné
+(define (ensSPallFbf EFBF)
+  (if (set-empty? EFBF) '()
+      (set-union (ensSP (car EFBF))
+                 (ensSPallFbf (cdr EFBF)) )))
+
+;(define (ensSPallFbf e)
+  ;(cond [(set-empty? e) '(())]
+        ;[else (let ((boucleCdr (ensSPallFbf (cdr e)))
+                    ;(set-union
+                     ;(map 
+                     ;[(enSP f)])] ))
+
+
+;(define (ensInt ESP)
+  ;(cond [(set-empty? ESP) '(())]
+        ;[else (let ((EnsIntCdr (ensInt (cdr ESP))))
+                ;(set-union
+                 ;(map [lambda (I) (cons (cons (car ESP) 0) I)] EnsIntCdr)
+                 ;(map [lambda (I) (cons (cons (car ESP) 1) I)] EnsIntCdr)
+                 ;))]))
+
+;; Q20 ;; Vérifie si une interprétation donnée est modèle d'un ensemble de propositions donné
+(define (modeleCommun? E I)
+  (if (null? E) #t
+      (andmap (lambda (fbf) (modele? fbf I)) E) ))
+
+;; Q21 ;; Vérifie si un ensemble de propositions est contradictoire
+; Prend l'ensemble des symboles propositionnelles, donne leur ensemble propositionnelle à une fonction
+; qui teste si chaque interprétation est un modèleCommun de l'ensemble.
+; Et retourne #f si il trouve un modèle commun, #t sinon.
+(define (contradictoire? E)
+  (if (null? E) #f
+      (not (ormap (lambda (I) (modeleCommun? E I)) (ensInt (ensSPallFbf E)))) ))
+
+;; Q22 ;; Vérifie si une fbf est conséquence logique d'un ensemble de formules
+; Vérifier que {a ET b, NON a, b IMPLIQUE d} CONSEQUENCE LOGIQUE c IMPLIQUE d
+(define (consequence? Efbf fbf)
+  (let [(TOUT (cons fbf Efbf))]
+    (ormap (lambda (I) (modeleCommun? TOUT I)) (ensInt (ensSPallFbf TOUT))) ))
+
+;; Q23 ;;
+(define (consequenceV? Efbf fbf)
+  (let [(TOUT (cons fbf Efbf))]
+    (not (ormap (lambda (I) (valide? TOUT I)) (ensInt (ensSPallFbf TOUT)))) )) 

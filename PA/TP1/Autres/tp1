@@ -1,0 +1,131 @@
+#lang racket
+(define (puiss2 x)
+  (* x x))
+
+(define (puiss4 x)
+  (puiss2 (puiss2 x)))
+
+(define (divisible? a b )
+  (= (modulo a b) 0))
+
+(define (f1 x)
+  (cond
+    [(= x 5) 3]
+    [(>= x 8) (* x x)]
+    [(= x 6) 'toto]
+    [(= x 7) #t]
+    [else #f]))
+
+; 4) Les conditions
+; Exo 7
+(define (monabs x)
+  (if (< x 0)
+      (- 0 x)
+      x))
+
+; Exo 8
+(define (care-div a b)
+  (if (= b 0)
+      (display "Erreur : Division par 0 interdit")
+      (/ a b)))
+
+; Exo 9
+(define (s t)
+  (cond
+    ((or (< t (- 0 3)) (and (>= t (- 0 1)) (< t 2)) (>= t 4)) 0)
+    ((and (>= t (- 0 3)) (< t (- 0 1))) 1)
+    ((and (>= t 2) (< t 4)) 2) ))
+
+; 5) Calcul de taux d'intérêt
+; Exo 10
+(define (placement c t n)
+  (expt (+ c t) n))
+
+; 6) La tortue
+(require (lib "turtles.ss" "graphics"))
+; Exo 11
+; Exo 12
+;(turtles #t)
+(define (carré l) ; l = "longueur d'un côté"
+  (draw l)
+  (turn 90)
+  (draw l)
+  (turn 90)
+  (draw l)
+  (turn 90)
+  (draw l))
+
+; Exo 13
+(define (hexagone l)
+  (draw l) ;1
+  (turn 60)
+  (draw l) ;2
+  (turn 60)
+  (draw l) ;3
+  (turn 60)
+  (draw l) ;4
+  (turn 60)
+  (draw l) ;5
+  (turn 60)
+  (draw l)) ;6
+
+; Exo 14
+(define figure (lambda (n l) ; n = "nombre de côtés", l = "longueur d'un côté"
+                 (let ((angle (/ 360 n)))
+                   (define turn&draw (lambda (n)
+                                       (if (= n 0)
+                                           'fin ; arrêt
+                                           (and
+                                            (draw l)
+                                            (turn angle)
+                                            (turn&draw (- n 1)) ))))
+                   (turn&draw n) )))
+
+; letrec
+(define ua (lambda (n r initial)
+             (letrec ((f (lambda (n)
+                           (if (= n 0)
+                               initial
+                               (+ r (f (- n 1))) ))))
+               (f n))))
+
+; let
+(define inverse (lambda (s)
+                  (let ((l (string-length s)))
+                    (if (= 0 l)
+                        s
+                        (string-append (substring s (- l 1) l)
+                                       (inverse (substring s 0 (- l 1))) )))))
+                        
+; Exo 15
+(define (bissextile? a)
+  (cond [(not (= (modulo a 4) 0)) #f]
+        [(not (= (modulo a 100) 0)) #t]
+        [(not (= (modulo a 400) 0)) #f]
+        [else #t] ))
+
+; Exo 16
+(define (nb-annees-bissextiles a)
+  (if (= a 1900)
+      0
+      (if (bissextile? a)
+          (+ 1 (nb-annees-bissextiles (- a 1)))
+          (nb-annees-bissextiles (- a 1)) )))
+
+; Exo 17
+(define (nb-jours-au-1-jan m)
+  (let [(mois (list 31 28 31 30 31 30 31 31 30 31 30 31))]
+    (if (= m 1)
+        0
+        (+ (list-ref mois (- m 2)) (nb-jours-au-1-jan (- m 1))) )))
+
+; Exo 18 ;; 01 01 1900
+(define (nb-jours j m a)
+  (+ (* (nb-annees-bissextiles a) 366)
+     (* (- a 1900) 365)
+     (nb-jours-au-1-jan m)
+     j ))
+
+; Exo 19
+;(define (jour-de-semaine j m a)
+;  (

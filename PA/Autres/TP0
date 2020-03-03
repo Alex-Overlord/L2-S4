@@ -1,0 +1,16 @@
+(define (puiss2 x)
+  (* x x))
+
+(define (puiss4 x)
+  (puiss2 (puiss2 x)))
+
+(define (divisible? a b)
+  (= (modulo a b) 0))
+
+(define (f1 x)
+  (cond
+    [(= x 5) 3]
+    [(>= x 8) (* x x)]
+    [(= x 6) 'toto]
+    [(= x 7) #t]
+    [() #f]))

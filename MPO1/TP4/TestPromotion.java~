@@ -1,0 +1,14 @@
+package TP4;
+import java.util.ArrayList;
+
+public class TestPromotion
+{
+    public static void main(String[] args)
+    {
+	Promotion info = new Promotion();
+	Etudiant alex = new Etudiant("Canton Condes", 1993, 1, CodePays.francais);
+	Etudiant ambre = new Etudiant("Lamouchi", 1998, 1, CodePays.francais);
+	info.inscrire(0, alex);
+	info.inscrire(1, ambre);
+    }
+}

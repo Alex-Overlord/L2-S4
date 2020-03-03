@@ -1,0 +1,21 @@
+#lang racket
+; Annale Examen du 12 mai 2016
+
+; Exo 2 : Écrire en récursivité enveloppée une fonction "count" qui prend en paramètres
+; un élément et une liste et compte le nombre d’occurences de l’élément dans la liste.
+; Exemples :
+; > (count ’a ’(a b (a a c) (c (d a) e) d))
+; 4
+; > (count ’a ’(b c d (e f)))
+; 0
+;(define (count element liste)
+;  (define (fonction li resultat)
+;    (cond [(null? li) 0]
+;          [(eq? (car li) element) 1]
+;          ;[(list? (car li)) ]
+;          [else (fonction
+
+(define (count e l)
+  (apply '+(mapcar '(lambda(x)(if (= x e)1 0))l)))
+
+(print (count 'a '(a b (a a c) (c (d a) e) d)))

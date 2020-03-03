@@ -1,0 +1,51 @@
+#lang racket
+
+; 1 Représentation des propositions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define F ’(<-> (^ a c) (v (! b) (-> c (^ B T)))))
+
+; Q1
+;(define F1 '(<-> A COMPLETER !!!
+
+
+; Q2
+(define (neg? f) (eq? f '!))
+(define (and? f) (eq? f '^))
+(define (or? f) (eq? f 'v))
+(define (imp? f) (eq? f '->))
+(define (equ? f) (eq? f '<->))
+(define (top? f) (eq? f 'T))
+(define (bot? f) (eq? f 'B))
+(define (symbLog? f) (or (top? f) (bot? f) (and? f) (or? f) (neg? f) (imp? f) (equ? f)))
+(define (symbProp? f) (and (symbol? f) (not (symbLog? f))))
+(define (atomicFbf? f) (or (symbProp? f) (top? f) (bot? f)))
+(define (conBin? f) (or (and? f) (or? f) (imp? f) (equ? f)))
+
+; Q2
+;(define (fbf? f)
+;  (cond ((atomicFbf? f) 					   A COMPLETER )
+;        ((list? f) (cond ((and (= (length f) 2) (neg? (car f)))    A COMPLETER )
+;                         ((and (= (length f) 3) (conBin? (car f))) A COMPLETER )
+;                         (#t #f)))
+;        (#t #f)))
+
+
+; 2 Syntaxe des propositions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (conRac f) (car f))
+(define (fils f) (cadr f))
+(define (filsG f) (cadr f))
+(define (filsD f) (caddr f))
+(define (negFbf? f) (and (not (atomicFbf? f)) (neg? (conRac f))))
+
+; Q3
+;(define (nbc f)
+;  (cond ((atomicFbf? f) A COMPLETER )
+;        ((negFbf? f)    A COMPLETER)
+;        (#t 		A COMPLETER )))
+
+
+; Q4 
+; (define (prof f)   A COMPLETER)

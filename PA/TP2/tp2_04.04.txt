@@ -1,0 +1,124 @@
+#lang racket
+(require racket/set)
+;; Définitions des objets de base ;;
+(define LVal '(1 2 3 4 5 6 7 8 9 10 25 50 75 100))
+(define Op '(+ * - /))
+
+;; Exo 1 ;;
+(define (make-cible) ; Renvoie un nombre entre 100 et 999
+  (+ (random 900) 100) )
+
+(define (make-tirage2) ; Renvoie une liste de 6 chiffres de 0 à 9
+  (list (random 10)
+        (random 10)
+        (random 10)
+        (random 10)
+        (random 10)
+        (random 10) ))
+
+(define (make-tirage)
+  (letrec [(tireun (lambda () (list-ref LVal (random 14))))
+           (f (lambda (i acc)
+                (if (= i 0) acc (f (- i 1)
+                                   (cons (tireun) acc)))))]
+    (f 6 '()) ))
+
+;; Exo 2 ;;
+(define (estDans?2 n L) ; Teste si un entier n est dans la liste L
+  (if (equal? (member n L) #f)
+      #f
+      #t ))
+
+(define (estDans? n L)
+  (cond [(null? L) #f]
+        [(eq? (car L) n) #t]
+        [else (estDans? n (cdr L))] ))
+
+(define (estDans?3 n L)
+  (and (not (null? L))
+       (or (= n (car L))
+           (estDans?3 n (cdr L)) )))
+
+;; Exo 3 ;;
+(define (estValide? o a b) ; Teste si l'opération envoie un résultat entier strictement positif
+  (cond [(and (eq? (eval o) /) (= b 0)) #f] ; si division et b = 0, on renvoie faux
+        [(< ((eval o) a b) 0) #f] ; si le résultat est négatif, on renvoie faux
+        [(and (eq? (eval o) /) ; si c'est une division et
+              (or (not (= (modulo a b) 0)))) #f] ; le résultat de la division est un nombre flottant alors on renvoie faux
+        [else #t] )) ; sinon on renvoie vrai
+
+;; Exo 4 ;; L : liste d'opérateurs; a, b : deux entiers
+(define (opere op a b)
+  (letrec [(f (lambda (l acc)
+              (cond [(null? l) acc]
+                    [(estValide? (eval (car l)) a b) (f (cdr l) (cons ((eval (car l)) a b) acc))]
+                    [(estValide? (eval (car l)) b a) (f (cdr l) (cons ((eval (car l)) b a) acc))]
+                    [else (f (cdr l) acc)] )))]
+    (f op '()) ))
+
+(define (opere2 Op a b)
+  (cond [(null? Op) '()]
+        [(estValide? (eval (car Op)) a b) (cons ((eval (car Op)) a b) (opere2 (cdr Op) a b))]
+        [(estValide? (eval (car Op)) b a) (cons ((eval (car Op)) b a) (opere2 (cdr Op) a b))]
+        [else (opere2 (cdr Op) a b)] ))
+
+(define (opere3 L a b) ; Renvoie une liste de valeurs obtenues en appliquant les opérations valides
+  (if (null? L) L ; si L est vide, alors on la renvoie
+      (if (estValide? (eval (car L)) a b) ; sinon si l'opération est valide
+          (cons ((eval (car L)) a b) (opere2 (cdr L) a b)) ; si oui, on rajoute le résultat dans la list
+          (if (estValide? (eval (car L)) b a) ; sinon si l'opération est valide en permutant a et b
+              (cons ((eval (car L)) b a) (opere2 (cdr L) a b))
+              (opere2 (cdr L) a b) )))) ; si oui, idem mais en permutant a et b
+
+;; Exo 5 ;; Renvoie une liste de liste représentant les plaques,
+; que l'on peut générer en choissant deux valeurs parmi la liste initiale.
+; ex: pour (1 2 3) renvoie ((1 2).(3) (1 3).(2) (2 3).(1))
+(define (listeCouples l)
+  (letrec [(f (lambda (l1 l2 acc)
+                (cond [(or (null? l1) (null? (cdr l1))) acc]
+                      [(null? l2) (f (cdr l1) (cddr l1) acc)]
+                      [else (f l1 (cdr l2)
+                               (cons
+                                (cons (list (car l1) (car l2))
+                                      (set-subtract l (list (car l1) (car l2)))) acc))] )))]
+    (if (null? l) '() (f l (cdr l) '())) ))
+
+(define (aplatit l)
+  (if (null? l) '()
+      (append (car l) (aplatit (cdr l))) ))
+
+(define (genere_plaques l)
+  (let* [(f (lambda (c) (cons (opere Op (caar c) (cadar c)) (cdr c))))
+         (g (lambda (res) (map (lambda (x) (append (list x) (cdr res))) (car res)))) ]
+    (aplatit (map g (map f (listeCouples l)))) ))
+
+;; Exo 6 ;; Prend une liste d'opérateurs op, une liste de plaque l, un entier e, et qui  affiche "le compte est bon"
+; si on peut obtenir la cible exactement à partir des plaques et des opérateurs, et qui affiche "le compte n'est pas bon" sinon.
+(define (ceb op pla cible)
+  (cond [(null? pla) #f] ; pas de plaques
+        [(member cible pla) #t] ; plaque disponible
+        [else (let [(lp (genere_plaques pla))]
+                (ormap (lambda (l) (ceb op l cible)) lp))]))
+
+;; Exo 7 ;; PAS FINI
+(define (d a b) (abs (- a b)))
+(define (approche l x)
+  (letrec [(f (lambda (m acc)
+                (cond [(null? m) acc]
+                      [(or (= acc -1) (f (cdr m) (car m))
+                           (if (or
+                                (= acc -1)
+                                (> (d x acc) (d x (car m))) )))]
+                      [else (f (cdr m) (car m)) ])]
+
+;; Exo 8 ;; PAS FINI
+(define (lpp op pla cible)
+  (letrec [(f (lambda (l acc)
+                (cond [(null? l) acc]
+                      [(member cible pla) cible] 
+                      [else
+                       (let* [(nac (approche l cible))
+                              (lp (genere_plaques op l))
+                              (lpp (map (lambda (m) (f m acc)) lp)) ]
+                         (approche lpp cible) )])))]
+    (f pla -1) ))

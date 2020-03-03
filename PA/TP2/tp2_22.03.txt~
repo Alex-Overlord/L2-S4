@@ -1,0 +1,40 @@
+#lang racket
+; Définitions des objets de base
+(define LVal '(1 2 3 4 5 6 7 8 9 10 25 50 75 100))
+(define Op '(+ * - /))
+
+; Exo 1 
+(define (make-cible) ; Renvoie un nombre entre 100 et 999
+  (+ (random 900) 100) )
+
+(define (make-tirage) ; Renvoie une liste de 6 chiffres de 0 à 9
+  (list (random 10)
+        (random 10)
+        (random 10)
+        (random 10)
+        (random 10)
+        (random 10) ))
+
+; Exo 2
+(define (estDans? n L) ; Teste si un entier n est dans la liste L
+  (if (equal? (member n L) #f)
+      #f
+      #t ))
+
+; Exo 3
+(define (estValide? o a b) ; Teste si l'opération envoie un résultat entier strictement positif
+  (cond [(and (eq? (eval o) /) (= b 0)) #f] ; si division et b = 0
+        [(< ((eval o) a b) 0) #f] ; si le résultat est négatif
+        [(and (eq? (eval o) /)
+              (or (not (= (modulo a b) 0)))) #f] ; si le résultat de la division est un nombre flottant
+        [else #t] ))
+
+; Exo 4
+(define (opere L a b) ; 
+  (if (null? L)
+      L ; si L vide
+      ; A COMPLETER
+      (if (valide? (eval (car L)) a b)
+          (cons ((eval (car L)) a b) (opere (cdr L) a b))
+          (cons ((eval (car L)) b a) (opere (cdr L) a b)) )))
+  

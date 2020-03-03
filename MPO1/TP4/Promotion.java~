@@ -1,0 +1,35 @@
+package TP4;
+import java.util.ArrayList;
+
+public class Promotion
+{
+    private ArrayList<Etudiant> etudiants; // Association avec la classe Etudiant
+
+    // Attributs
+    private int annee;
+    
+    // Accesseurs en lecture
+    public int getAnnee() { return annee; }
+
+    // Accesseurs en écriture
+    public void setAnnee(int annee) { this.annee = annee; }
+
+    // Constructeur par défaut
+    public Promotion()
+    {
+    	etudiants = new ArrayList<>();
+    }
+
+    // Constructeur avec paramètre
+    public Promotion(int annee)
+    {
+    	etudiants = new ArrayList<>();
+    	setAnnee(annee);
+    }
+
+    // Autres méthodes
+    public Etudiant iemeEtudiant(int i)
+    {
+    	return etudiants.get(i);
+    }
+}

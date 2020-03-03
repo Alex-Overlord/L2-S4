@@ -1,0 +1,21 @@
+#lang racket
+
+(define (valeurPiecesEuro piece)
+  (cond [(= piece 1) 1]
+        [(= piece 2) 2]
+        [(= piece 3) 5]
+        [(= piece 4) 10]
+        [(= piece 5) 20]
+        [(= piece 6) 50]
+        [(= piece 7) 100]
+        [(= piece 8) 200] ))
+
+(define (rendreMonnaieListe somme nbSortesPieces valeurPiece)
+  (letrec [(rendre (lambda (somme n)
+                     (cond [(= somme 0) '()]
+                           [(or (< somme 0) (= n 0)) '()]
+                           [else (append (rendre somme (- n 1)) (rendre (- somme (valeurPiece n)) n))] )))]
+    (rendre somme nbSortesPieces) ))
+
+(define (rendreEuro somme)
+  (rendreMonnaieListe somme 8 valeurPiecesEuro) )

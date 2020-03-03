@@ -1,0 +1,8 @@
+-------------------------------
+|	Etudiant
+-------------------------------
+| - age : int
+| - dateNaiss : int
+| - codeIns : int
+| - codePays : String
+| - 

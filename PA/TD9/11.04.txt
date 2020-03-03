@@ -1,0 +1,52 @@
+#lang racket
+;(use-modules (ice-9 streams))
+
+; exo 2
+(define (square x)
+  (* x x) )
+
+; exo 1
+(define (sum-odd-squares tree)
+  (cond [(null? tree) 0]
+        [(not (pair? tree))
+         (if (odd? tree) (square tree) 0)]
+        [else (+ (sum-odd-squares (car tree))
+                 (sum-odd-squares (cdr tree)) )]))
+
+; exo 2
+;(print (sum-odd-squares (list 1 (list 2 (list 3 4) 5) (list 6 7))))
+
+; exo 4
+;(print (sum-odd-squares (list 1 (list 2 (list 3 4)) 5)))
+;(print (sum-odd-squares (list 1 (list 2 (list 3 4) 5) (list 6 7))))
+
+; exo 5
+(define (exo5 tree)
+  (cond [(null? tree) 1]
+        [(not (pair? tree))
+         (if (odd? tree) (square tree) 1)]
+        [else (* (exo5 (car tree))
+                 (exo5 (cdr tree)) )]))
+
+;(print (exo5 (list 1 (list 2 (list 3 4) 5) (list 6 7))))
+
+; exo 6
+; 1.
+(define ones (stream-cons 1 ones) )
+
+;(print (stream-cons 1 '(2 3)))
+
+; 2. Somme des flux : ne marche pas
+(define (add-streams s1 s2)
+  (stream-cons
+   (+ (stream-car s1) (stream-car s2))
+   (add-streams (stream-cdr s1) (stream-cdr s2)) ))
+
+; 3.
+(define integers (stream-cons 1 (add-streams ones intergers)))
+
+; 4.
+(define fibs (cons-stream 0 (cons-stream 1 (add-streams fibs (stream-cdr fibs)))))
+
+; exo 7
+(define factorials (cons-stream 1 (mule-streams integers factorials)))

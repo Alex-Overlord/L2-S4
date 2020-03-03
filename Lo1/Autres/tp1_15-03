@@ -1,0 +1,114 @@
+#lang racket
+
+; 1 Représentation des propositions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define F '(<-> (^ a c) (v (! b) (-> c (^ B T)))))
+
+; Q1
+(define F1 '(<-> (^ a b) (v (! a) b)))
+(define F2 '(v (! (^ a (! b))) (! (-> a b))))
+(define F3 '(^ (! (-> a (v a b))) (! (! (^ a (v b (! c)))))))
+(define F4 '(^ (v (! a) b d) (v (! d) c) (v c a) (v (! c) b) (v (! b) d)))
+
+; Q2
+(define (neg? f) (eq? f '!))
+(define (and? f) (eq? f '^))
+(define (or? f) (eq? f 'v))
+(define (imp? f) (eq? f '->))
+(define (equ? f) (eq? f '<->))
+(define (top? f) (eq? f 'T))
+(define (bot? f) (eq? f 'B))
+(define (symbLog? f) (or (top? f) (bot? f) (and? f) (or? f) (neg? f) (imp? f) (equ? f)))
+(define (symbProp? f) (and (symbol? f) (not (symbLog? f))))
+(define (atomicFbf? f) (or (symbProp? f) (top? f) (bot? f)))
+(define (conBin? f) (or (and? f) (or? f) (imp? f) (equ? f)))
+
+; Q2
+(define (fbf? f)
+  (cond ((atomicFbf? f) #t)
+        ((list? f) (cond ((and (= (length f) 2) (neg? (car f))) (fbf? (cadr f)) #t)
+                         ((and (= (length f) 3) (conBin? (car f))) (and (fbf? (cadr f)) (fbf? (caddr f))))
+                         (else #f)))
+        (else #f)))
+
+
+; 2 Syntaxe des propositions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (conRac f) (car f))
+(define (fils f) (cadr f))
+(define (filsG f) (cadr f))
+(define (filsD f) (caddr f))
+(define (negFbf? f) (and (not (atomicFbf? f)) (neg? (conRac f))))
+
+; Q3
+(define (nbc f)
+  (cond ((atomicFbf? f) 0)
+        ((negFbf? f) (+ 1 (nbc (fils f))))
+        (else (+ 1 (nbc (filsG f)) (nbc (filsD f))))))
+
+
+; Q4 
+(define (prof f)
+  (cond [(atomicFbf? f) 0]
+        [(negFbf? f) (+ 1 (prof (fils f)))]
+        [else (+ 1 (max (prof (filsG f)) (prof (filsD f))))]))
+
+; Q5
+(define (enSP f)
+  (cond [(symbProp? f) (list f)]
+        [(negFbf? f) (enSP (fils f))]
+        [else (set-union (enSP (filsG f)) (enSP (filsD f)))]))
+
+;(define (enSP2 f)
+;  (cond [(or (top? f) (bot? f))]
+;        [(and (symbProp? f) (not (top? f)) (not (bot? f))) (list f)]
+;        [(negFbf? f) (enSP (fils f))]
+;        [else (set-union (enSP (filsG f)) (enSP (filsD f)))]))
+
+; Q6 (optionnel)
+;(define (affiche f)
+
+; Q7
+(define I1 '((a . 1) (b . 0) (c . 1)))
+(define I2 '((a . 0) (b . 0) (c . 0)))
+(define I3 '((a . 1) (b . 1) (c . 1)))
+
+; Q8
+(define (intSymb s I) ; on suppose que a 1 valeur dans I
+  (cond [(eq? (caar I) s) (cdar I)]
+        [else (intSymb s (cdr I))]))
+
+; Q9
+(define (intNeg b)
+  (if (eq? b 0) 1 0))
+
+(define (intEt b1 b2)
+  (if (and (= b1 1) (= b2 1)) 1 0))
+
+(define intTop 1)
+
+(define intBot 0)
+
+; Q10
+(define (valV f I)
+  (cond [(symbProp? f) (intSymb f I)]
+        [(top? f) intTop]
+        [(bot? f) intBot]
+        [(negFbf? f) (intNeg (valV (fils f) I))]
+        [(and? (conRac f) (intEt (valV (filsG f) I)
+                                 (valV (filsD f) I)))]))
+
+; Q11
+(define (modele? f I)
+  (= (valV f I) 1))
+
+; Q12
+(define EIpq '[((p . 0) (q . 1))
+               ((p . 0) (q . 1))
+               ((p . 1) (q . 0))
+               ((p . 1) (q . 1))])
+
+; Q13 ; set-union set-add map lambda (5 lignes) null?
+;(define (ensInt ESP) 

@@ -1,0 +1,320 @@
+#lang racket
+
+; Examen TP Alexandre Canton Condes 11/04
+; Au début: concaténation des deux TP
+
+
+
+
+; --- TP1 ---
+
+(define (puiss2 x)
+  (* x x))
+
+(define (puiss4 x)
+  (puiss2 (puiss2 x)))
+
+(define (divisible? a b )
+  (= (modulo a b) 0))
+
+(define (f1 x)
+  (cond
+    [(= x 5) 3]
+    [(>= x 8) (* x x)]
+    [(= x 6) 'toto]
+    [(= x 7) #t]
+    [else #f]))
+
+; 4) Les conditions
+; Exo 7
+(define (monabs x)
+  (if (< x 0)
+      (- 0 x)
+      x))
+
+; Exo 8
+(define (care-div a b)
+  (if (= b 0)
+      (display "Erreur : Division par 0 interdit")
+      (/ a b)))
+
+; Exo 9
+(define (s t)
+  (cond
+    ((or (< t (- 0 3)) (and (>= t (- 0 1)) (< t 2)) (>= t 4)) 0)
+    ((and (>= t (- 0 3)) (< t (- 0 1))) 1)
+    ((and (>= t 2) (< t 4)) 2) ))
+
+; 5) Calcul de taux d'intérêt
+; Exo 10
+(define (placement c t n)
+  (expt (+ c t) n))
+
+; 6) La tortue
+(require (lib "turtles.ss" "graphics"))
+; Exo 11
+; Exo 12
+;(turtles #t)
+(define (carré l) ; l = "longueur d'un côté"
+  (draw l)
+  (turn 90)
+  (draw l)
+  (turn 90)
+  (draw l)
+  (turn 90)
+  (draw l))
+
+; Exo 13
+(define (hexagone l)
+  (draw l) ;1
+  (turn 60)
+  (draw l) ;2
+  (turn 60)
+  (draw l) ;3
+  (turn 60)
+  (draw l) ;4
+  (turn 60)
+  (draw l) ;5
+  (turn 60)
+  (draw l)) ;6
+
+; Exo 14
+(define figure (lambda (n l) ; n = "nombre de côtés", l = "longueur d'un côté"
+                 (let ((angle (/ 360 n)))
+                   (define turn&draw (lambda (n)
+                                       (if (= n 0)
+                                           'fin ; arrêt
+                                           (and
+                                            (draw l)
+                                            (turn angle)
+                                            (turn&draw (- n 1)) ))))
+                   (turn&draw n) )))
+
+; letrec
+(define ua (lambda (n r initial)
+             (letrec ((f (lambda (n)
+                           (if (= n 0)
+                               initial
+                               (+ r (f (- n 1))) ))))
+               (f n))))
+
+; let
+(define inverse (lambda (s)
+                  (let ((l (string-length s)))
+                    (if (= 0 l)
+                        s
+                        (string-append (substring s (- l 1) l)
+                                       (inverse (substring s 0 (- l 1))) )))))
+                        
+; Exo 15
+(define (bissextile? a)
+  (cond [(not (= (modulo a 4) 0)) #f]
+        [(not (= (modulo a 100) 0)) #t]
+        [(not (= (modulo a 400) 0)) #f]
+        [else #t] ))
+
+; Exo 16
+(define (nb-annees-bissextiles a)
+  (if (= a 1900)
+      0
+      (if (bissextile? a)
+          (+ 1 (nb-annees-bissextiles (- a 1)))
+          (nb-annees-bissextiles (- a 1)) )))
+
+; Exo 17
+(define (nb-jours-au-1-jan m) ;; Nombre de jours depuis le 1er janvier
+  (let [(mois (list 31 28 31 30 31 30 31 31 30 31 30 31))]
+    (if (= m 1)
+        0
+        (+ (list-ref mois (- m 2)) (nb-jours-au-1-jan (- m 1))) )))
+
+; Exo 18 ;; 01 01 1900
+(define (nb-jours j m a) ;; Nombre de jours depuis le 1er janvier 1900
+  (+ (* (nb-annees-bissextiles a) 366)
+     (* (- a 1900) 365)
+     (nb-jours-au-1-jan m)
+     j ))
+
+; Exo 19 ;; Lundi 1 janvier 1900
+(define (jour-de-semaine j m a)
+  (let ([jours '(Lundi Mardi Mercredi Jeudi Vendredi Samedi Dimanche)])
+        (list-ref jours (modulo (nb-jours j m a) 6)) ))
+
+
+
+
+
+
+
+
+
+
+; --- TP2 ---
+
+(require racket/set)
+;; Définitions des objets de base ;;
+(define LVal '(1 2 3 4 5 6 7 8 9 10 25 50 75 100))
+(define Op '(+ * - /))
+
+;; Exo 1 ;;
+(define (make-cible) ; Renvoie un nombre entre 100 et 999
+  (+ (random 900) 100) )
+
+(define (make-tirage2) ; Renvoie une liste de 6 chiffres de 0 à 9
+  (list (random 10)
+        (random 10)
+        (random 10)
+        (random 10)
+        (random 10)
+        (random 10) ))
+
+(define (make-tirage)
+  (letrec [(tireun (lambda () (list-ref LVal (random 14))))
+           (f (lambda (i acc)
+                (if (= i 0) acc (f (- i 1)
+                                   (cons (tireun) acc)))))]
+    (f 6 '()) ))
+
+;; Exo 2 ;;
+(define (estDans?2 n L) ; Teste si un entier n est dans la liste L
+  (if (equal? (member n L) #f)
+      #f
+      #t ))
+
+(define (estDans? n L)
+  (cond [(null? L) #f]
+        [(eq? (car L) n) #t]
+        [else (estDans? n (cdr L))] ))
+
+(define (estDans?3 n L)
+  (and (not (null? L))
+       (or (= n (car L))
+           (estDans?3 n (cdr L)) )))
+
+;; Exo 3 ;;
+(define (estValide? op a b)
+  (cond ((eq? op -) (> a b))
+        ((eq? op /) (and (not (= b 0))
+                         (not (= a 0))
+                         (= (modulo a b) 0)))
+        (else (> ((eval op) a b) 0))))
+
+;(define (estValide? o a b) ; Teste si l'opération envoie un résultat entier strictement positif
+;  (cond [(and (eq? (eval o) /) (= b 0)) #f] ; si division et b = 0, on renvoie faux
+;        [(< ((eval o) a b) 0) #f] ; si le résultat est négatif, on renvoie faux
+;        [(and (eq? (eval o) /) ; si c'est une division et
+;              (or (not (= (modulo a b) 0)))) #f] ; le résultat de la division est un nombre flottant alors on renvoie faux
+;        [else #t] )) ; sinon on renvoie vrai
+
+;; Exo 4 ;; L : liste d'opérateurs; a, b : deux entiers
+(define (opere op a b)
+  (letrec [(f (lambda (l acc)
+                (cond [(null? l) acc]
+                      [(estValide? (eval (car l)) a b) (f (cdr l) (cons ((eval (car l)) a b) acc))]
+                      [(estValide? (eval (car l)) b a) (f (cdr l) (cons ((eval (car l)) b a) acc))]
+                      [else (f (cdr l) acc)] )))]
+    (f op '()) ))
+
+(define (opere2 Op a b)
+  (cond [(null? Op) '()]
+        [(estValide? (eval (car Op)) a b) (cons ((eval (car Op)) a b) (opere2 (cdr Op) a b))]
+        [(estValide? (eval (car Op)) b a) (cons ((eval (car Op)) b a) (opere2 (cdr Op) a b))]
+        [else (opere2 (cdr Op) a b)] ))
+
+(define (opere3 L a b) ; Renvoie une liste de valeurs obtenues en appliquant les opérations valides
+  (if (null? L) L ; si L est vide, alors on la renvoie
+      (if (estValide? (eval (car L)) a b) ; sinon si l'opération est valide
+          (cons ((eval (car L)) a b) (opere2 (cdr L) a b)) ; si oui, on rajoute le résultat dans la list
+          (if (estValide? (eval (car L)) b a) ; sinon si l'opération est valide en permutant a et b
+              (cons ((eval (car L)) b a) (opere2 (cdr L) a b))
+              (opere2 (cdr L) a b) )))) ; si oui, idem mais en permutant a et b
+
+;(print (opere Op 2 10))
+;(print (opere2 Op 2 10))
+(print (opere3 Op 2 10))
+
+;; Exo 5 ;; Renvoie une liste de liste représentant les plaques,
+; que l'on peut générer en choissant deux valeurs parmi la liste initiale.
+; ex: pour (1 2 3) renvoie ((1 2).(3) (1 3).(2) (2 3).(1))
+(define (listeCouples l)
+  (letrec [(f (lambda (l1 l2 acc)
+                (cond [(or (null? l1) (null? (cdr l1))) acc]
+                      [(null? l2) (f (cdr l1) (cddr l1) acc)]
+                      [else (f l1 (cdr l2)
+                               (cons
+                                (cons (list (car l1) (car l2))
+                                      (set-subtract l (list (car l1) (car l2)))) acc))] )))]
+    (if (null? l) '() (f l (cdr l) '())) ))
+
+;(print (listeCouples '(1 2 3)))
+
+(define (aplatit l)
+  (if (null? l) '()
+      (append (car l) (aplatit (cdr l))) ))
+
+;(print (aplatit ))
+
+(define (genere_plaques op l)
+  (let* [(f (lambda (c) (cons (opere op (caar c) (cadar c)) (cdr c))))
+         (g (lambda (res) (map (lambda (x) (append (list x) (cdr res))) (car res)))) ]
+    (aplatit (map g (map f (listeCouples l)))) ))
+
+;(print (genere_plaques Op '(1 2 3))) NE MARCHE PAS
+
+;; Exo 6 ;; Prend une liste d'opérateurs op, une liste de plaque pla, un entier e, et qui affiche "le compte est bon"
+; si on peut obtenir la cible exactement à partir des plaques et des opérateurs, et qui affiche "le compte n'est pas bon" sinon.
+(define (ceb op pla cible)
+  (cond [(null? pla) #f] ; pas de plaques
+        [(member cible pla) #t] ; plaque disponible
+        [else (let [(lp (genere_plaques op pla))]
+                (ormap (lambda (l) (ceb op l cible)) lp))]))
+
+;(define jeu (make-tirage))
+;(print (ceb Op jeu 2647))
+;(print (ceb Op jeu 418))
+
+;; Exo 7 ;;
+(define (distance a b) (abs (- a b)))
+
+(define (approche liste entier)
+  (define (fonction liste resultat)
+    (if (null? liste)
+        resultat
+        (if (< (distance (car liste) entier) (distance entier resultat))
+            (fonction (cdr liste) (car liste))
+            (fonction (cdr liste) resultat))))
+  (fonction liste (car liste)) )
+
+;(print (approche '(1 4 7 9) 3))
+;(print (approche '(1 4 7 9) 7))
+;(print (approche '(1 4 7 9) 45))
+;(print (approche '(1 4 7 9) 8))
+
+;; Exo 8 ;; PAS FINI
+(define (plusProche operations plaques cible)
+  (define (fonction liste resultat)
+    (if (null? liste) resultat
+        (if (member cible plaques) cible
+            (let* [(nbApproche (approche liste cible))
+                   (listePlaques (genere_plaques liste))
+                   (listePlusProche (map (lambda (entier) (fonction entier resultat)) listePlaques)) ]
+              (approche listePlusProche cible) ))))
+  (fonction plaques -1) )
+
+;(print (plusProche Op '(1 4 7 9) 3))
+
+;(define (lpp op pla cible)
+;  (letrec [(f (lambda (l acc)
+;                (cond [(null? l) acc]
+;                      [(member cible pla) cible] 
+;                      [else
+;                       (let* [(nac (approche l cible))
+;                              (lp (genere_plaques op l))
+;                              (lpp (map (lambda (m) (f m acc)) lp)) ]
+;                         (approche lpp cible) )])))]
+;    (f pla -1) ))
+
+
+
+; Examen
+

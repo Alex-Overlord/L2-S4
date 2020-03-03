@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - MainFileAttente",
+            "request": "launch",
+            "mainClass": "TP8.MainFileAttente"
+        }
+    ]
+}

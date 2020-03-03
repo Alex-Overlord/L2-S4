@@ -1,0 +1,3 @@
+(define (puiss2 x)
+  (* x x))
+

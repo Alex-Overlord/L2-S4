@@ -1,0 +1,12 @@
+\frametitle{La structure d'un fichier .tex}
+
+\begin{enumerate}
+\item \verb_\documentclass[a4paper]{article} % type de document_
+\item \verb_\usepackage[francais]{babel} % les extensions à utiliser_
+\item \verb_\usepackage[T1]{fontenc} % etc._
+\item \verb_\title{Mon article} \author{Michel Meynard} % l'en-tête_
+\item \verb_\begin{document}\maketitle % début du corps du document_
+\item \verb_texte et commandes LaTeX ..._
+\item \verb_\end{document} % fin du document_
+\end{enumerate}
+

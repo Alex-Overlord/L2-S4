@@ -1,0 +1,59 @@
+(neg? f)
+(and? f)
+(or? f)
+(imp? f)
+(equ? f)
+(top? f)
+(bot? f)
+(symbLog? f)
+(symbProp? f)
+(atomicFbf? f)
+(atomicFbf? f)
+(conBin? f)
+
+(fbf? f)
+(conRac f)
+(fils f)
+(filsG f)
+(filsD f)
+(negFbf? f)
+(nbc f)
+(prof f)
+(ensSP f)		: Retourne l'ensemble des symboles propositionnels de f
+(intNeg b) 		: !b
+(intAnd a b) 		: (^ a b)
+(intOr a b) 		: (v a b)
+(intImp a b) 		: (-> a b)
+(intEqu a b) 		: (<-> a b)
+intTop : 1
+intBot : 0
+(valV f I)		: Retourne la valeur de vérité d'une formule
+(modele? F I) 		: Vérifie si la valeur de la fbf F selon l'interprétation I est ou pas un modèle
+
+(ensInt ESP) 		: Retourne l'ensemble de toutes les interprétation possible
+(satisfiable? F)  	: Vérifie si une fbf donnée est satisfiable
+(valide? F)   	  	: Vérifie si une fbf F est valide
+(insatisfiable? F)  	: Vérifie si une fbf F est insatisfiable
+(equivalent2? f1 f2)  	: Vérifie si (<-> f1 f2) est valide
+(consequence2?v1 F G) 	: Vérifie que F CONSEQUENCE LOGIQUE G (idem pour consequence2?v2 et consequence2?v3)
+
+(ensSPallFbf EFBF) 	: Retourne l'ensemble des symboles propositionnels d'un ensemble de propositions EFBF
+
+(contradictoire? E) 	: Vérifie si un ensemble propositions est contradictoire
+(consequence? H c) 	: Vérifie si une fbf c est conséquence logique d'un ensemble de formules H
+(oteEqu f)    		: Prend une fbf f et retourne une fbf logiquement équivalente qui ne contient pas de connecteur <->
+
+(oteImp f) 		: Prend une fbf f et retourne une fbf logiquement équivalente qui ne contient pas de connecteur ->
+
+(oteCste f) 		: Prend une fbf f et retourne une fbf logiquement équivalente qui ne contient pas de constantes logiques
+
+(redNeg f) 		: Prend une fbf f ne contenant pas de connecteur <-> et -> et retourne une fbf logiquement équivalente dont la négation ne porte que sur les symboles propositionnels
+
+(andFbf? f)
+(orFbf? f)
+(distOu f) 		: Prend une fbf f composée de littéraux connectés par des ^ et v et retourne une fbf logiquement équivalente sous forme conjonctive
+
+(formeConj f)
+(litteral? f)
+(oppose l)
+(transClause f)

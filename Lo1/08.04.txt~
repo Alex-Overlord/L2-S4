@@ -1,0 +1,399 @@
+#lang racket
+
+; 1 Représentation des propositions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+
+(define F '(<-> (^ a c) (v (! b) (-> c (^ B T)))))
+
+; Q1
+(define F1 '(<-> (^ a b) (v (! a) b)))
+(define F2 '(v (! (^ a (! b))) (! (-> a b))))
+(define F3 '(^(!(-> a (v a b))) (! (! (^ a( v b (! c)))))))  ;travail avec F3
+(define F4 '(^
+             (v (v
+                 (! a)
+                 b)
+                d)
+             (^
+              (v
+               (! d)
+               c)
+              (^
+               (v c a)
+               (^
+                (v
+                 (! c)
+                 b)
+                (^
+                 (v
+                  (! c)
+                  (! b))
+                 (v
+                  (! b)
+                  d)
+                 )
+                )
+               )
+              )
+             )
+  )
+
+
+
+; Q2
+(define (neg? f) (eq? f '!))
+(define (and? f) (eq? f '^))
+(define (or? f) (eq? f 'v))
+(define (imp? f) (eq? f '->))
+(define (equ? f) (eq? f '<->))
+(define (top? f) (eq? f 'T))
+(define (bot? f) (eq? f 'B))
+(define (symbLog? f) (or (top? f) (bot? f) (and? f) (or? f) (neg? f) (imp? f) (equ? f)))
+(define (symbProp? f) (and (symbol? f) (not (symbLog? f))))
+(define (atomicFbf? f) (or (symbProp? f) (top? f) (bot? f)))
+(define (conBin? f) (or (and? f) (or? f) (imp? f) (equ? f)))
+
+; Q2
+(define (fbf? f)
+  (cond ((atomicFbf? f) #t)
+        ((list? f) (cond ((and (= (length f) 2) (neg? (car f))) (fbf? (cadr f)))
+                        ((and (= (length f) 3) (conBin? (car f))) (and(fbf?(cadr f))(fbf?(caddr f))))
+                        (#t #f)))
+        (#t #f)))
+
+
+; 2 Syntaxe des propositions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (conRac f) (car f))
+(define (fils f) (cadr f))
+(define (filsG f) (cadr f))
+(define (filsD f) (caddr f))
+(define (negFbf? f) (and (not (atomicFbf? f)) (neg? (conRac f))))
+
+; Q3
+(define (nbc f)
+  (cond ((atomicFbf? f) 0)
+        ((negFbf? f) (+ 1 ( nbc (fils f))))
+        (#t (+ 1 (nbc(filsG f)) (nbc(filsD f))))))
+
+
+; Q4
+ (define (prof f) (cond [(atomicFbf? f) 0]
+                        [(negFbf? f) (+ 1 ( prof (fils f)))]
+                        [#t (+ 1 (max (prof(filsG f)) (prof(filsD f))))]))
+
+
+
+; Q5
+
+(define (ensSP f)( cond [(atomicFbf? f) (list f)]
+                        [(negFbf? f)(ensSP (fils f))]
+                        [#t (set-union (ensSP(filsG f))(ensSP(filsD f)))]))
+                       
+                 
+; Q6
+(define (chaine f)
+  (cond
+    ((atomicFbf? f) (symbol->string f))
+    ((negFbf? f) (string-append
+                  (symbol->string (conRac f)) (chaine (fils f))))
+    (else (string-append
+           "(" (chaine (filsG f)) " " (symbol->string (conRac f)) " " (chaine (filsD f)) ")" ))))
+
+(define (affiche f) (display (chaine f)))
+
+
+
+; Q7
+(define I1 '((a . 1) (b . 0) (c . 1)))
+(define I2 (cons (cons 'a 0) (cons (cons 'b 0) (cons (cons 'c 0) null))))
+(define I3 (cons(cons 'a 1) (cons(cons 'b 1) (cons(cons 'c 1) null))))
+
+; Q8
+;on suppose que s a une valeur dans I
+(define (intSymb s I)(cond[(eq? s (caar I) ) (cdar I)]
+                          [#t (intSymb s (cdr I))]))
+
+
+;Q9
+(define(intNeg b)(if (eq? b 0) 1 0))
+(define(intAnd a b)(if ( and (= a 1)(= b 1))1 0))
+(define(intOr a b)(if(and (= a 0)(= b 0)) 0 1))
+(define(intImp a b)(if ( and (= a 1)(= b 0)) 0 1))
+(define(intEqu a b)(if (= a b) 1 0))
+
+(define intTop 1)
+(define intBot 0)
+
+;Q10
+
+(define (valV f I)( cond[ (symbProp? f)(intSymb f I)]
+                       [ (top? f) intTop]  
+                       [ (bot? f) intBot]
+                       [ (negFbf? f) (intNeg(valV(fils f) I))]
+                       [(and?(conRac f))(intAnd(valV(filsG f) I)(valV(filsD f) I))]
+                       [(or?(conRac f))(intOr(valV(filsG f) I)(valV(filsD f) I))] ;a verifier
+                       [(imp?(conRac f))(intImp(valV(filsG f) I)(valV(filsD f) I))]
+                       [(equ?(conRac f))(intEqu(valV(filsG f) I)(valV(filsD f) I))]                     
+                       ))
+
+
+;Q11
+(define (modele? fbf I)(eq?(valV fbf I) 1))
+
+
+
+
+
+; Q12
+(define ETpq '(((p . 0) (q . 0))
+               ((p . 0) (q . 1))
+               ((p . 1) (q . 0))
+               ((p . 1) (q . 1))))
+
+
+
+; Q13
+(define (ensInt ESP)
+  (cond[(set-empty? ESP)'(())]
+       [else (let((EnsIntCdr( ensInt(cdr ESP))))
+               (set-union (map [lambda(I)(cons(cons(car ESP)0)I)]EnsIntCdr)
+                          (map [lambda(I)(cons(cons(car ESP)1)I)] EnsIntCdr)))]))
+      
+; Q14
+(define (satisfiable? F)
+  (ormap(lambda(I)(modele? F I))(ensInt(ensSP F))))
+
+
+; Q15
+( define ( valide? F )
+   ( andmap ( lambda(I) (modele? F I))(ensInt(ensSP F))))
+
+; Q16
+( define ( insatisfiable? F )
+   ( andmap ( lambda(I) (not(modele? F I)))(ensInt(ensSP F))))
+
+
+; Q17
+;equivalent 1
+(define( equivalent1? F1 F2)
+  (andmap(lambda(I)(eq?(valV F1 I)(valV F2 I)))
+                (ensInt(set-union(ensSP F1)(ensSP F2)))))
+        
+
+;equivalent 2
+(define(equivalent2? F1 F2)
+  (valide? (list '<-> F1 F2)))
+
+;Q18
+
+(define (consequance2? F1 F2)
+  (andmap(lambda(I)(if ( and ( = ( valV F1 I) 1 )
+                             ( = ( valV F2 I) 0 ))
+                       #f #t))
+           (ensInt(set-union(ensSP F1)(ensSP F2)))))
+
+
+;Q19
+(define( ensSPallFbf ensF)  ;(map(lambda(I)(ensSP I)) ensF))
+  (if (set-empty? ensF) '()
+      (set-union (ensSP(car ensF))
+                 (ensSPallFbf(cdr ensF)))))
+
+;Q20
+(define (modeleCommun? ensF I)
+  (if (set-empty? ensF) #f
+      (andmap(lambda(f)(modele? f I)) ensF)))
+ 
+;Q21
+(define (contradictoire? ensF)
+  (if (set-empty? ensF) #t
+      (not(ormap(lambda(I)(modeleCommun? ensF I))(ensInt(ensSPallFbf ensF))))))
+
+;Q22                         
+;(define( consequence? ensFbf F)
+;  (let ((A (cons F ensFbf)))
+;   (ormap(lambda(I)(modeleCommun? A I))(ensInt(ensSPallFbf A)))))
+(define (consequence? H c)(andmap (lambda (I)(if
+                                             (and (modeleCommun? H I)
+                                                     (= (valV c I) 0)) #f #t))
+                                 
+                                 (ensInt (set-union(ensSPallFbf H)(ensSP c)))))
+
+
+
+
+
+
+
+;Q23
+(define (conjonction ensFbf )
+  (letrec ((f (lambda(ensFbf A)
+              (if (null? ensFbf) A
+
+                  (f (cdr ensFbf) (append  (list '^) (list A )(list (car ensFbf))))))))
+    (f (cdr ensFbf) (car ensFbf))))
+   
+   
+
+
+
+
+;Q25
+(define (oteEqu f)
+  (cond (( atomicFbf? f) f)
+        ((negFbf? f) (list '! (oteEqu (fils f))))
+        ((not (equ? (conRac f))) (list (conRac f)(oteEqu (filsG f))
+                                       (oteEqu (filsD f))))
+        (else (let ((fg (oteEqu(filsG f)))(fd (oteEqu(filsD f))))
+               (list '^ (list '-> fg fd)(list '-> fd fg))))))
+                                      
+
+;Q26
+(define (oteImp f)
+  (cond (( atomicFbf? f) f)
+        ((negFbf? f) (list '! (oteImp (fils f))))
+        ((not (imp? (conRac f))) (list (conRac f)(oteImp (filsG f))
+                                       (oteImp (filsD f))))
+        (else (let ((fg (oteImp(filsG f)))(fd (oteImp(filsD f))))
+               (list 'v (list '! fg) fd)))))
+
+;Q27
+(define (oteCste f)
+  (cond ((symbProp? f) f)
+        ((negFbf? f) (list '! (oteCste (fils f))))
+ ;       ((not (atomicFbf? (conRac f))) (list (conRac f)(oteCste (filsG f))
+   ;                                    (oteCste (filsD f))))
+        ((bot? f)(list '^ (list '! 'p) 'p))
+        ((top? f)(list 'v (list '! 'p) 'p))
+        ( #t (list (conRac f)(oteCste (filsG f))
+                                       (oteCste (filsD f))))
+        ))
+
+;Q28
+(define (redNeg f)
+  (cond ((symbProp? f) f)
+        ((not (negFbf? f))(list(conRac f)(redNeg (filsG f))(redNeg (filsD f))))
+;cas ou il y a une négation:
+        ((symbProp? (fils f)) f)
+        ((negFbf? (fils f)) (redNeg (fils (fils f))))
+        ((and?(conRac(fils f)))(list 'v
+                                     (redNeg (list '! (filsG (fils f))))
+                                     (redNeg (list '! (filsD(fils f))))))
+        (else (list '^ (redNeg (list '! (filsG (fils f))))
+                    (redNeg(list '! (filsD(fils f))))))))
+
+
+
+
+
+
+
+(define( andFbf? fbf)
+  (and(not(symbProp? fbf ))(eq? (conRac fbf)'^)))
+
+(define( orFbf? fbf)
+  (and(not(symbProp? fbf ))(eq? (conRac fbf)'v)))
+
+
+
+;Q29
+(define (distOu f)
+  (cond [(symbProp? f ) f]
+        [(negFbf? f) f]
+        [(andFbf? f)
+         (list '^ (distOu (filsG f))(distOu (filsD f)))]
+        [else (let(( fg (distOu (filsG f)))
+                    (fd (distOu (filsD f))))
+                (cond [(andFbf? fg)
+                       (list '^(distOu(list 'v(filsG fg) fd))
+                               (distOu (list 'v (filsD fg) fd )))]
+                      [(andFbf? fd)
+                       (list '^(distOu (list'v fg (filsG fd)))
+                               (distOu (list 'v fg (filsD fd))))]
+                      (else (list 'v fg fd))))]))
+                     
+
+
+; Q30
+(define (formeConj fbf)
+  (distOu
+   (redNeg
+    (oteCste
+     (oteImp
+      (oteEqu fbf)
+      )))))
+
+
+;;;FORME CLAUSALE
+
+(define( litteral? f)
+  (or (symbProp? f)(and(negFbf? f)(symbProp?(fils f)))))
+
+
+(define(oppose l)
+  (if (symbProp? l)(list '! l)(fils l)))
+
+CORNEPUTE
+
+
+
+; Q31 ;;
+(define (transClause f)
+  (if (litteral? f) (list f)
+      (set-union (transClause (fils f))(transClause(filsD f)))))
+  
+
+
+;a testé
+(define(ajoutC C EC)
+  (cond [(set-empty? EC) (list C)]
+        [(not(list? C)) (list EC)]
+        [(set=? C (car EC)) EC]
+        [else (cons (car EC)(ajoutC C (cdr EC)))]))
+        
+
+
+;à testé
+(define (unionEC EC1 EC2)
+  (if (set-empty? EC2) EC1
+  (ajoutC (car EC2)
+          (unionEC EC1 (cdr EC2)))))
+ 
+
+
+
+; Q32
+;(define (transEnsClause f)
+;  (if (or (litteral? f) (orFbf? f)) (transClause f)
+ ;     (unionEC(transEnsClause (filsG f))(transEnsClause(filsD f)))))
+;redéfinir opérateur ajout, et union
+
+(define (transEnsClause f)
+  (if (or (atomicFbf? f)(negFbf? f)(orFbf? f)) (list (transClause f))
+      (set-union(transEnsClause(filsG f))(transEnsClause(filsD f)))))
+
+; Q33
+(define (formeClausale fbf)
+  (transEnsClause(formeConj fbf)))
+
+
+; Q34
+;(define (tautologique clause)
+; (cond[ (empty? clause) #f]
+;      [ (
+
+
+ 
+
+;sommaire:
+;Q13  table verité, liste: (ensInt ESP)
+;Q14  satisfiable, bool: (satisfiable? F)
+;Q15  valide, bool: (valide? F)
+;Q15  insatisfiable, bool: (insatisfiable? F)
+
+;Q19  renvoie l'ensemble des symbole des propositionnelle: (ensSPallFbf ensFbf)

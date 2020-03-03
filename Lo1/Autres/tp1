@@ -1,0 +1,62 @@
+#lang racket
+
+; 1 Représentation des propositions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define F '(<-> (^ a c) (v (! b) (-> c (^ B T)))))
+
+; Q1
+(define F1 '(<-> (^ a b) (v (! a) b)))
+(define F2 '(v (! (^ a (! b))) (! (-> a b))))
+(define F3 '(^ (! (-> a (v a b))) (! (! (^ a (v b (! c)))))))
+(define F4 '(^ (v (! a) b d) (v (! d) c) (v c a) (v (! c) b) (v (! b) d)))
+
+; Q2
+(define (neg? f) (eq? f '!))
+(define (and? f) (eq? f '^))
+(define (or? f) (eq? f 'v))
+(define (imp? f) (eq? f '->))
+(define (equ? f) (eq? f '<->))
+(define (top? f) (eq? f 'T))
+(define (bot? f) (eq? f 'B))
+(define (symbLog? f) (or (top? f) (bot? f) (and? f) (or? f) (neg? f) (imp? f) (equ? f)))
+(define (symbProp? f) (and (symbol? f) (not (symbLog? f))))
+(define (atomicFbf? f) (or (symbProp? f) (top? f) (bot? f)))
+(define (conBin? f) (or (and? f) (or? f) (imp? f) (equ? f)))
+
+; Q2
+(define (fbf? f)
+  (cond ((atomicFbf? f) #t)
+        ((list? f) (cond ((and (= (length f) 2) (neg? (car f))) (fbf? (cadr f)) #t)
+                         ((and (= (length f) 3) (conBin? (car f))) (and (fbf? (cadr f)) (fbf? (caddr f))))
+                         (else #f)))
+        (else #f)))
+
+
+; 2 Syntaxe des propositions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (conRac f) (car f))
+(define (fils f) (cadr f))
+(define (filsG f) (cadr f))
+(define (filsD f) (caddr f))
+(define (negFbf? f) (and (not (atomicFbf? f)) (neg? (conRac f))))
+
+; Q3
+(define (nbc f)
+  (cond ((atomicFbf? f) 0)
+        ((negFbf? f) (+ 1 (nbc (fils f))))
+        (else (+ 1 (nbc (filsG f)) (nbc (filsD f))))))
+
+
+; Q4 
+(define (prof f)
+  (cond ((atomicFbf? f) 0)
+        ((negFbf? f) (+ 1 (prof (fils f))))
+        (else (+ 1 (max (prof (filsG f)) (prof (filsD f)))))))
+
+; Q5
+;(define (enSP f)
+;  (cond ((atomicFbf? f) (list 'f))
+;        ((nebFbf? f) (list 'f))
+;        (else (set

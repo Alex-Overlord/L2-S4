@@ -1,0 +1,6 @@
+\babel@toc {french}{}
+\beamer@sectionintoc {1}{Introduction}{3}{0}{1}
+\beamer@sectionintoc {2}{Exemple}{4}{0}{2}
+\beamer@sectionintoc {3}{Le langage \LaTeX }{6}{0}{3}
+\beamer@subsectionintoc {3}{1}{Les commandes et environnements \LaTeX }{6}{0}{3}
+\beamer@subsectionintoc {3}{2}{La structure d'un fichier .tex}{7}{0}{3}
